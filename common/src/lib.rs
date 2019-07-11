@@ -36,14 +36,11 @@ extern crate semver;
 extern crate serde_json;
 extern crate serde_yaml;
 extern crate sleep_parser;
-extern crate svgdom;
-extern crate svgtypes;
 extern crate tar;
 extern crate toml;
 extern crate url;
 extern crate uuid;
 extern crate xml;
-extern crate xmlparser;
 extern crate zip;
 extern crate zopfli;
 
@@ -827,136 +824,6 @@ pub fn fuzz_zopfli_compress(data: &[u8]) {
     }
 }
 
-#[inline(always)]
-pub fn fuzz_svgtypes_color(data: &[u8]) {
-    use std::str;
-    use std::str::FromStr;
-
-    if let Ok(s) = str::from_utf8(data) {
-        // Must not panic.
-        let _ = svgtypes::Color::from_str(s);
-    }
-}
-
-#[inline(always)]
-pub fn fuzz_svgtypes_length(data: &[u8]) {
-    use std::str;
-    use std::str::FromStr;
-    use svgtypes::{Error, Length};
-
-    if let Ok(s) = str::from_utf8(data) {
-        if let Err(e) = Length::from_str(s) {
-            match e {
-                Error::InvalidNumber(_) => {}
-                _ => panic!("{:?}", e),
-            }
-        }
-    }
-}
-
-#[inline(always)]
-pub fn fuzz_svgtypes_path(data: &[u8]) {
-    use std::str;
-
-    if let Ok(s) = str::from_utf8(data) {
-        // Must not panic.
-        let mut n = 0;
-        for _ in svgtypes::PathParser::from(s) {
-            n += 1;
-
-            if n == 1000 {
-                panic!("endless loop");
-            }
-        }
-    }
-}
-
-#[inline(always)]
-pub fn fuzz_svgtypes_style(data: &[u8]) {
-    use std::str;
-
-    if let Ok(s) = str::from_utf8(data) {
-        // Must not panic.
-        let mut n = 0;
-        for _ in svgtypes::StyleParser::from(s) {
-            n += 1;
-
-            if n == 1000 {
-                panic!("endless loop");
-            }
-        }
-    }
-}
-
-#[inline(always)]
-pub fn fuzz_svgtypes_transforms(data: &[u8]) {
-    use std::str;
-
-    if let Ok(s) = str::from_utf8(data) {
-        // Must not panic.
-        let mut n = 0;
-        for _ in svgtypes::TransformListParser::from(s) {
-            n += 1;
-
-            if n == 1000 {
-                panic!("endless loop");
-            }
-        }
-    }
-}
-
-#[inline(always)]
-pub fn fuzz_xmlparser_unescape(data: &[u8]) {
-    use std::str;
-    use xmlparser::{TextUnescape, XmlSpace};
-
-    if let Ok(s) = str::from_utf8(data) {
-        let _ = TextUnescape::unescape(s, XmlSpace::Default);
-        let _ = TextUnescape::unescape(s, XmlSpace::Preserve);
-    }
-}
-
-#[inline(always)]
-pub fn fuzz_xmlparser_xml(data: &[u8]) {
-    use std::str;
-
-    if let Ok(text) = str::from_utf8(data) {
-        let mut n = 0;
-        for _ in xmlparser::Tokenizer::from(text) {
-            n += 1;
-
-            if n == 1000 {
-                panic!("endless loop");
-            }
-        }
-    }
-}
-
-#[inline(always)]
-pub fn fuzz_svgdom_parse_roundtrip(data: &[u8]) {
-    use std::str;
-    use svgdom::{Document, WriteBuffer};
-
-    let data = if let Ok(d) = str::from_utf8(data) {
-        d
-    } else {
-        return;
-    };
-
-    let doc = Document::from_str(&data);
-    let doc = if let Ok(d) = doc { d } else { return };
-
-    let mut save_doc = Vec::with_capacity(data.len());
-    doc.write_buf(&mut save_doc);
-
-    // We just wrote this -- we need to be able to parse it
-    let re_doc = Document::from_str(&String::from_utf8_lossy(&save_doc)).unwrap();
-
-    let mut re_save_doc = Vec::with_capacity(data.len());
-    re_doc.write_buf(&mut re_save_doc);
-
-    assert_eq!(save_doc, re_save_doc);
-}
 
 #[inline(always)]
 pub fn fuzz_http_status_code(data: &[u8]) {
