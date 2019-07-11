@@ -41,7 +41,6 @@ extern crate svgtypes;
 extern crate tar;
 extern crate toml;
 extern crate url;
-extern crate usvg;
 extern crate uuid;
 extern crate xml;
 extern crate xmlparser;
@@ -931,11 +930,6 @@ pub fn fuzz_xmlparser_xml(data: &[u8]) {
             }
         }
     }
-}
-
-#[inline(always)]
-pub fn fuzz_usvg_parse_tree(data: &[u8]) {
-    let _ = usvg::Tree::from_data(data, &usvg::Options::default());
 }
 
 #[inline(always)]
